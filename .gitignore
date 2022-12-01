@@ -1,0 +1,4 @@
+test_directory/
+venv/
+.pytest_cache/
+.env
