@@ -3,9 +3,20 @@ import os
 from pwd import getpwuid
 from dotenv import load_dotenv
 import shutil
-from schemas import CreateFileRequest, CreateDirectoryRequest, EditFileRequest, EditDirectoryRequest, DeleteFileRequest, DeleteDirectoryRequest
+from schemas import (
+    CreateFileRequest,
+    CreateDirectoryRequest,
+    EditFileRequest,
+    EditDirectoryRequest,
+    DeleteFileRequest,
+    DeleteDirectoryRequest,
+)
 
-app = FastAPI()
+app = FastAPI(
+    title="File Directory API",
+    description="A plug and play API for navigating files and directory from any root directory",
+    swagger_ui_parameters={"defaultModelsExpandDepth": -1},
+)
 
 load_dotenv()
 root_file_path = os.environ["ROOT_PATH"]
@@ -84,7 +95,9 @@ async def create_file(file_create: CreateFileRequest):
     """Creates a new file or directory at the path specified in the query string.
 
     Args:
-        file_create (CreateFileRequest): contains the path, name and the content of the file to be created.
+        path (str): location of new file
+        name (str): name of file to be created
+        content (str): content of file to be created
 
     Returns:
         A message indicating whether the file or directory was created.
@@ -119,7 +132,8 @@ async def create_directory(directory_create: CreateDirectoryRequest):
     """Creates a new directory at the path specified in the query string.
 
     Args:
-        directory_create (CreateDirectoryRequest): contains the path and name of the directory to be created.
+        path (str): location of new directory
+        name (str): name of directory to be created
 
     Returns:
         A message indicating whether the file or directory was created.
@@ -147,13 +161,15 @@ async def create_directory(directory_create: CreateDirectoryRequest):
     os.mkdir(full_path_dir)
     return {"message": "Directory '{}' created".format(directory_create.name)}
 
+
 @app.put("/file", tags=["file"])
 async def edit_file(file_edit: EditFileRequest):
 
     """Edits a file at the path specified in the query string.
 
     Args:
-        file_edit (EditFileRequest): contains the path and the new content for the file
+        path (str): location of file to be edited
+        content (str): new content for the file
 
     Returns:
         A message indicating whether the file was edited.
@@ -180,13 +196,15 @@ async def edit_file(file_edit: EditFileRequest):
             detail="Path '{}' is not a file".format(file_edit.path),
         )
 
+
 @app.put("/directory", tags=["directory"])
 async def edit_directory(directory_edit: EditDirectoryRequest):
-    
+
     """Edits a directory at the path specified in the query string.
 
     Args:
-        directory_edit (EditDirectoryRequest): contains the path and the new name for the directory
+        path (str): location of directory to be edited
+        name (str): new name for the directory
 
     Returns:
         A message indicating whether the directory was edited.
@@ -212,13 +230,14 @@ async def edit_directory(directory_edit: EditDirectoryRequest):
             detail="Path '{}' is not a directory".format(directory_edit.path),
         )
 
+
 @app.delete("/file", tags=["file"])
 async def delete_file(file_delete: DeleteFileRequest):
     """
     Deletes a file at the path specified in the query string.
-    
+
     Args:
-        file_delete (DeleteFileRequest): contains the path of the file to be deleted
+        path (str): location of file to be deleted
 
     Returns:
         A message indicating whether the file was deleted.
@@ -244,13 +263,14 @@ async def delete_file(file_delete: DeleteFileRequest):
             detail="Path '{}' is not a file".format(file_delete.path),
         )
 
+
 @app.delete("/directory", tags=["directory"])
 async def delete_directory(directory_delete: DeleteDirectoryRequest):
     """
     Deletes a directory at the path specified in the query string.
-    
+
     Args:
-        directory_delete (DeleteDirectoryRequest): contains the path of the directory to be deleted
+        path (str): location of directory to be deleted
 
     Returns:
         A message indicating whether the directory was deleted.
@@ -270,8 +290,10 @@ async def delete_directory(directory_delete: DeleteDirectoryRequest):
     if os.path.isdir(full_path):
         # Also removes all lower level directories and files.
         # We could alternatively not allow this and use use rmdir and return an error if the directory is not empty.
-        shutil.rmtree(full_path) 
-        return {"message": "Directory at path '{}' deleted".format(directory_delete.path)}
+        shutil.rmtree(full_path)
+        return {
+            "message": "Directory at path '{}' deleted".format(directory_delete.path)
+        }
     else:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
