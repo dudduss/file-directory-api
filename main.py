@@ -11,7 +11,7 @@ load_dotenv()
 root_file_path = os.environ["ROOT_PATH"]
 
 # Turn on for testing. Unfortunately, need more time to get env variables for testing working.
-root_file_path = "test_root"
+# root_file_path = "test_root"
 
 
 @app.get("/", tags=["all"])
